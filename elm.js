@@ -6327,44 +6327,41 @@ Elm.Layout.make = function (_elm) {
    $Signal = Elm.Signal.make(_elm),
    $Window = Elm.Window.make(_elm);
    var _op = {};
-   var withDimensions = $Reactive.map3(F3(function (x,y,g) {
-      return g({dimensions: {ctor: "_Tuple2",_0: x,_1: y}});
+   var get = $Reactive.map4(F4(function (x,y,m,g) {
+      return g({dimensions: {ctor: "_Tuple2",_0: x,_1: y}
+               ,model: m});
    }));
-   var fillscreen = A2(withDimensions,
-   $Reactive.dynamic($Window.width),
-   $Reactive.dynamic($Window.height));
-   var combine = $Reactive.map3(F4(function (alignment,
+   var fillscreen = function (model) {
+      return A3(get,
+      $Reactive.dynamic($Window.width),
+      $Reactive.dynamic($Window.height),
+      model);
+   };
+   var combine = $Reactive.map4(F5(function (alignment,
+   split,
    layout1,
    layout2,
    config) {
-      var makeConfig = function (_p0) {
+      return A3(alignment,
+      function (_p0) {
          var _p1 = _p0;
-         return _U.update(config,
-         {dimensions: {ctor: "_Tuple2",_0: _p1._0,_1: _p1._1}});
-      };
-      var _p2 = config.dimensions;
-      var _p9 = _p2._1;
-      var _p8 = _p2._0;
-      var _p3 = alignment;
-      switch (_p3.ctor)
-      {case "Left": var _p4 = _p3._0;
-           return A2($Graphics$Element.beside,
-           layout1(makeConfig({ctor: "_Tuple2",_0: _p4,_1: _p9})),
-           layout2(makeConfig({ctor: "_Tuple2",_0: _p8 - _p4,_1: _p9})));
-         case "Right": var _p5 = _p3._0;
-           return A3($Basics.flip,
-           $Graphics$Element.beside,
-           layout1(makeConfig({ctor: "_Tuple2",_0: _p5,_1: _p9})),
-           layout2(makeConfig({ctor: "_Tuple2",_0: _p8 - _p5,_1: _p9})));
-         case "Above": var _p6 = _p3._0;
-           return A2($Graphics$Element.above,
-           layout1(makeConfig({ctor: "_Tuple2",_0: _p8,_1: _p6})),
-           layout2(makeConfig({ctor: "_Tuple2",_0: _p8,_1: _p9 - _p6})));
-         case "Below": var _p7 = _p3._0;
-           return A2($Graphics$Element.below,
-           layout1(makeConfig({ctor: "_Tuple2",_0: _p8,_1: _p7})),
-           layout2(makeConfig({ctor: "_Tuple2",_0: _p8,_1: _p9 - _p7})));
-         default: return A3(_p3._0,layout1,layout2,config);}
+         return layout1({dimensions: {ctor: "_Tuple2"
+                                     ,_0: _p1._0
+                                     ,_1: _p1._1}
+                        ,model: function (_p2) {
+                           return $Basics.fst(split(_p2));
+                        }(config.model)});
+      },
+      function (_p3) {
+         var _p4 = _p3;
+         return layout2({dimensions: {ctor: "_Tuple2"
+                                     ,_0: _p4._0
+                                     ,_1: _p4._1}
+                        ,model: function (_p5) {
+                           return $Basics.snd(split(_p5));
+                        }(config.model)});
+      },
+      config.dimensions);
    }));
    var inset = $Reactive.map3(F4(function (dx,dy,g,config) {
       var adjustedConfig = F2(function (x,y) {
@@ -6373,40 +6370,53 @@ Elm.Layout.make = function (_elm) {
                       ,_0: A2($Basics.max,0,x - 2 * dx)
                       ,_1: A2($Basics.max,0,y - 2 * dy)}});
       });
-      var _p10 = config.dimensions;
-      var _p12 = _p10._1;
-      var _p11 = _p10._0;
+      var _p6 = config.dimensions;
+      var _p8 = _p6._1;
+      var _p7 = _p6._0;
       return A4($Graphics$Element.container,
-      _p11,
-      _p12,
+      _p7,
+      _p8,
       $Graphics$Element.middle,
-      g(A2(adjustedConfig,_p11,_p12)));
+      g(A2(adjustedConfig,_p7,_p8)));
    }));
    var sized = $Reactive.map(F2(function (element,config) {
-      var _p13 = config.dimensions;
-      return A3($Graphics$Element.size,_p13._0,_p13._1,element);
+      var _p9 = config.dimensions;
+      return A3($Graphics$Element.size,
+      _p9._0,
+      _p9._1,
+      element(config.model));
    }));
    var embed = $Reactive.map2(F3(function (position,
    element,
    config) {
-      var _p14 = config.dimensions;
+      var _p10 = config.dimensions;
       return A4($Graphics$Element.container,
-      _p14._0,
-      _p14._1,
+      _p10._0,
+      _p10._1,
       position,
-      element);
+      element(config.model));
    }));
-   var contain = F4(function (rx,ry,rposition,layout) {
-      return A2(embed,rposition,A3(withDimensions,rx,ry,layout));
-   });
-   var map = function (_p15) {
+   var contain = $Reactive.map4(F5(function (ex,
+   ey,
+   position,
+   g,
+   config) {
+      var _p11 = config.dimensions;
+      return A4($Graphics$Element.container,
+      _p11._0,
+      _p11._1,
+      position,
+      g({dimensions: {ctor: "_Tuple2",_0: ex,_1: ey}
+        ,model: config.model}));
+   }));
+   var map = function (_p12) {
       return $Reactive.apply(A2($Reactive.map,
       F2(function (x,y) {
-         return function (_p16) {
-            return x(y(_p16));
+         return function (_p13) {
+            return x(y(_p13));
          };
       }),
-      _p15));
+      _p12));
    };
    var placeholder = function (thing) {
       return A3(inset,
@@ -6416,30 +6426,47 @@ Elm.Layout.make = function (_elm) {
       $Reactive.$static($Graphics$Element.color($Color.green)),
       A2(embed,
       $Reactive.$static($Graphics$Element.middle),
-      $Reactive.$static($Graphics$Element.show(thing)))));
+      $Reactive.$static($Basics.always($Graphics$Element.show(thing))))));
    };
-   var Custom = function (a) {    return {ctor: "Custom",_0: a};};
-   var custom = Custom;
-   var Right = function (a) {    return {ctor: "Right",_0: a};};
-   var right = Right;
-   var Left = function (a) {    return {ctor: "Left",_0: a};};
-   var left = Left;
-   var Below = function (a) {    return {ctor: "Below",_0: a};};
-   var below = Below;
-   var Above = function (a) {    return {ctor: "Above",_0: a};};
-   var above = Above;
-   var Config = function (a) {    return {dimensions: a};};
+   var custom = $Basics.identity;
+   var below = F4(function (height,layout1,layout2,_p14) {
+      var _p15 = _p14;
+      var _p16 = _p15._0;
+      return A2($Graphics$Element.below,
+      layout1({ctor: "_Tuple2",_0: _p16,_1: height}),
+      layout2({ctor: "_Tuple2",_0: _p16,_1: _p15._1 - height}));
+   });
+   var above = F4(function (height,layout1,layout2,_p17) {
+      var _p18 = _p17;
+      var _p19 = _p18._0;
+      return A2($Graphics$Element.above,
+      layout1({ctor: "_Tuple2",_0: _p19,_1: height}),
+      layout2({ctor: "_Tuple2",_0: _p19,_1: _p18._1 - height}));
+   });
+   var right = F4(function (width,layout1,layout2,_p20) {
+      var _p21 = _p20;
+      var _p22 = _p21._1;
+      return A3($Basics.flip,
+      $Graphics$Element.beside,
+      layout1({ctor: "_Tuple2",_0: width,_1: _p22}),
+      layout2({ctor: "_Tuple2",_0: _p21._0 - width,_1: _p22}));
+   });
+   var left = F4(function (width,layout1,layout2,_p23) {
+      var _p24 = _p23;
+      var _p25 = _p24._1;
+      return A2($Graphics$Element.beside,
+      layout1({ctor: "_Tuple2",_0: width,_1: _p25}),
+      layout2({ctor: "_Tuple2",_0: _p24._0 - width,_1: _p25}));
+   });
+   var Config = F2(function (a,b) {
+      return {dimensions: a,model: b};
+   });
    return _elm.Layout.values = {_op: _op
                                ,Config: Config
-                               ,Above: Above
-                               ,Below: Below
-                               ,Left: Left
-                               ,Right: Right
-                               ,Custom: Custom
-                               ,above: above
-                               ,below: below
                                ,left: left
                                ,right: right
+                               ,above: above
+                               ,below: below
                                ,custom: custom
                                ,map: map
                                ,placeholder: placeholder
@@ -6448,8 +6475,34 @@ Elm.Layout.make = function (_elm) {
                                ,sized: sized
                                ,inset: inset
                                ,combine: combine
-                               ,withDimensions: withDimensions
+                               ,get: get
                                ,fillscreen: fillscreen};
+};
+Elm.Model = Elm.Model || {};
+Elm.Model.make = function (_elm) {
+   "use strict";
+   _elm.Model = _elm.Model || {};
+   if (_elm.Model.values) return _elm.Model.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $Debug = Elm.Debug.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm);
+   var _op = {};
+   var splitLike = F2(function (_p0,m) {
+      var _p1 = _p0;
+      return {ctor: "_Tuple2",_0: _p1._0(m),_1: _p1._1(m)};
+   });
+   var splitNone = $Basics.always({ctor: "_Tuple2"
+                                  ,_0: {ctor: "_Tuple0"}
+                                  ,_1: {ctor: "_Tuple0"}});
+   var none = {ctor: "_Tuple0"};
+   return _elm.Model.values = {_op: _op
+                              ,none: none
+                              ,splitNone: splitNone
+                              ,splitLike: splitLike};
 };
 Elm.Main = Elm.Main || {};
 Elm.Main.make = function (_elm) {
@@ -6462,13 +6515,24 @@ Elm.Main.make = function (_elm) {
    $Layout = Elm.Layout.make(_elm),
    $List = Elm.List.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
+   $Model = Elm.Model.make(_elm),
    $Reactive = Elm.Reactive.make(_elm),
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm);
    var _op = {};
-   var main = $Reactive.get($Layout.fillscreen(A3($Layout.combine,
+   var she = $Layout.placeholder("she");
+   var he = $Layout.placeholder("he");
+   var layout = A4($Layout.combine,
    $Reactive.$static($Layout.left(40)),
-   $Layout.placeholder("he"),
-   $Layout.placeholder("she"))));
-   return _elm.Main.values = {_op: _op,main: main};
+   $Reactive.$static($Model.splitNone),
+   he,
+   she);
+   var main = $Reactive.get(A2($Layout.fillscreen,
+   $Reactive.$static($Model.none),
+   layout));
+   return _elm.Main.values = {_op: _op
+                             ,main: main
+                             ,layout: layout
+                             ,he: he
+                             ,she: she};
 };
