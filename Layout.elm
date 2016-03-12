@@ -4,9 +4,10 @@ import Signal as S
 import Color as C
 import Window as W
 import Reactive as R
+import Reader as D
 
 type alias Config = { dimensions : (Int, Int) }
-type alias SimpleLayout = Config -> G.Element
+type alias SimpleLayout = D.Reader Config G.Element
 type alias Layout = R.Reactive SimpleLayout
 
 type Alignment = Above Int | Below Int | Left Int | Right Int | Custom (SimpleLayout -> SimpleLayout -> SimpleLayout)
@@ -27,7 +28,7 @@ custom : (SimpleLayout -> SimpleLayout -> SimpleLayout) -> Alignment
 custom = Custom
 
 map : R.Reactive (G.Element -> G.Element) -> Layout -> Layout
-map = R.apply << (R.apply (R.static <| (<<)))
+map = R.apply << (R.map (<<))
 
 placeholder : anything -> Layout
 placeholder thing = inset (R.static 1) (R.static 1) <| map (R.static <| G.color C.green) <| embed (R.static G.middle) <| R.static <| G.show thing
@@ -36,21 +37,21 @@ contain : R.Reactive Int -> R.Reactive Int -> R.Reactive G.Position -> Layout ->
 contain rx ry rposition layout = embed rposition (withDimensions rx ry layout)
 
 embed : R.Reactive G.Position -> R.Reactive G.Element -> Layout
-embed = R.apply2 (R.static <| \position element -> \config -> case config.dimensions of
+embed = R.map2 (\position element -> \config -> case config.dimensions of
     (x, y) -> G.container x y position element)
 
 sized : R.Reactive G.Element -> Layout
-sized = R.apply (R.static <| \element -> \config -> case config.dimensions of
+sized = R.map (\element -> \config -> case config.dimensions of
     (x, y) -> G.size x y element)
 
 inset : R.Reactive Int -> R.Reactive Int -> Layout -> Layout
-inset = R.apply3 (R.static <| \dx dy g -> let
-    adjustedConfig x y = { dimensions = (max 0 (x - 2 * dx), max 0 (y - 2 * dy)) }
-    in \config -> case config.dimensions of
+inset = R.map3 (\dx dy g -> \config -> let
+        adjustedConfig x y = { config | dimensions = (max 0 (x - 2 * dx), max 0 (y - 2 * dy)) }
+    in case config.dimensions of
         (x, y) -> G.container x y G.middle (g <| adjustedConfig x y))
 
 combine : R.Reactive Alignment -> Layout -> Layout -> Layout
-combine = R.apply3 (R.static <| \alignment layout1 layout2 -> \config -> let
+combine = R.map3 (\alignment layout1 layout2 -> \config -> let
         makeConfig (x', y') = { config | dimensions = (x', y') }
     in case config.dimensions of
         (x, y) -> case alignment of
@@ -61,7 +62,7 @@ combine = R.apply3 (R.static <| \alignment layout1 layout2 -> \config -> let
             Custom alignmentFunction -> alignmentFunction layout1 layout2 config)
 
 withDimensions : R.Reactive Int -> R.Reactive Int -> Layout -> R.Reactive G.Element
-withDimensions = R.apply3 (R.static <| \x y g -> g { dimensions = (x, y) } )
+withDimensions = R.map3 (\x y g -> g { dimensions = (x, y) } )
 
 fillscreen : Layout -> R.Reactive G.Element
 fillscreen = withDimensions (R.dynamic W.width) (R.dynamic W.height)

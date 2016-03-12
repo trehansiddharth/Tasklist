@@ -6126,7 +6126,7 @@ Elm.Reactive.make = function (_elm) {
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm);
    var _op = {};
-   var getDynamic = function (x) {
+   var get = function (x) {
       var _p0 = x;
       if (_p0.ctor === "Static") {
             return $Signal.constant(_p0._0);
@@ -6150,6 +6150,7 @@ Elm.Reactive.make = function (_elm) {
    var dynamic = Dynamic;
    var Static = function (a) {    return {ctor: "Static",_0: a};};
    var $static = Static;
+   var lift = $static;
    var apply = F2(function (rf,rx) {
       var _p3 = rf;
       if (_p3.ctor === "Static") {
@@ -6184,23 +6185,129 @@ Elm.Reactive.make = function (_elm) {
    var apply2 = F3(function (f,x,y) {
       return A2(apply,A2(apply,f,x),y);
    });
+   var map2 = A2(F2(function (x,y) {
+      return function (_p8) {
+         return x(y(_p8));
+      };
+   }),
+   apply2,
+   lift);
    var apply3 = F4(function (f,x,y,z) {
       return A2(apply,A2(apply,A2(apply,f,x),y),z);
    });
+   var map3 = A2(F2(function (x,y) {
+      return function (_p9) {
+         return x(y(_p9));
+      };
+   }),
+   apply3,
+   lift);
    var apply4 = F5(function (f,w,x,y,z) {
       return A2(apply,A2(apply,A2(apply,A2(apply,f,w),x),y),z);
    });
+   var map4 = A2(F2(function (x,y) {
+      return function (_p10) {
+         return x(y(_p10));
+      };
+   }),
+   apply4,
+   lift);
+   var map = A2(F2(function (x,y) {
+      return function (_p11) {
+         return x(y(_p11));
+      };
+   }),
+   apply,
+   lift);
+   _op["<$>"] = map;
+   _op["<*>"] = apply;
    return _elm.Reactive.values = {_op: _op
                                  ,Static: Static
                                  ,Dynamic: Dynamic
                                  ,$static: $static
                                  ,dynamic: dynamic
                                  ,getStatic: getStatic
-                                 ,getDynamic: getDynamic
+                                 ,get: get
+                                 ,lift: lift
                                  ,apply: apply
                                  ,apply2: apply2
                                  ,apply3: apply3
-                                 ,apply4: apply4};
+                                 ,apply4: apply4
+                                 ,map: map
+                                 ,map2: map2
+                                 ,map3: map3
+                                 ,map4: map4};
+};
+Elm.Reader = Elm.Reader || {};
+Elm.Reader.make = function (_elm) {
+   "use strict";
+   _elm.Reader = _elm.Reader || {};
+   if (_elm.Reader.values) return _elm.Reader.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $Debug = Elm.Debug.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm);
+   var _op = {};
+   var apply = F3(function (f,x,r) {    return A2(f,r,x(r));});
+   var apply2 = F3(function (f,x,y) {
+      return A2(apply,A2(apply,f,x),y);
+   });
+   var apply3 = F4(function (f,x,y,z) {
+      return A2(apply,A2(apply,A2(apply,f,x),y),z);
+   });
+   var apply4 = F5(function (f,w,x,y,z) {
+      return A2(apply,A2(apply,A2(apply,A2(apply,f,w),x),y),z);
+   });
+   _op["<*>"] = apply;
+   var $with = F2(function (x,y) {
+      return function (_p0) {
+         return y(x(_p0));
+      };
+   });
+   var lift = $Basics.always;
+   var map = A2(F2(function (x,y) {
+      return function (_p1) {
+         return x(y(_p1));
+      };
+   }),
+   apply,
+   lift);
+   _op["<$>"] = map;
+   var map2 = A2(F2(function (x,y) {
+      return function (_p2) {
+         return x(y(_p2));
+      };
+   }),
+   apply2,
+   lift);
+   var map3 = A2(F2(function (x,y) {
+      return function (_p3) {
+         return x(y(_p3));
+      };
+   }),
+   apply3,
+   lift);
+   var map4 = A2(F2(function (x,y) {
+      return function (_p4) {
+         return x(y(_p4));
+      };
+   }),
+   apply4,
+   lift);
+   return _elm.Reader.values = {_op: _op
+                               ,lift: lift
+                               ,$with: $with
+                               ,apply: apply
+                               ,apply2: apply2
+                               ,apply3: apply3
+                               ,apply4: apply4
+                               ,map: map
+                               ,map2: map2
+                               ,map3: map3
+                               ,map4: map4};
 };
 Elm.Layout = Elm.Layout || {};
 Elm.Layout.make = function (_elm) {
@@ -6215,19 +6322,18 @@ Elm.Layout.make = function (_elm) {
    $List = Elm.List.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
    $Reactive = Elm.Reactive.make(_elm),
+   $Reader = Elm.Reader.make(_elm),
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm),
    $Window = Elm.Window.make(_elm);
    var _op = {};
-   var withDimensions = $Reactive.apply3($Reactive.$static(F3(function (x,
-   y,
-   g) {
+   var withDimensions = $Reactive.map3(F3(function (x,y,g) {
       return g({dimensions: {ctor: "_Tuple2",_0: x,_1: y}});
-   })));
+   }));
    var fillscreen = A2(withDimensions,
    $Reactive.dynamic($Window.width),
    $Reactive.dynamic($Window.height));
-   var combine = $Reactive.apply3($Reactive.$static(F4(function (alignment,
+   var combine = $Reactive.map3(F4(function (alignment,
    layout1,
    layout2,
    config) {
@@ -6259,32 +6365,28 @@ Elm.Layout.make = function (_elm) {
            layout1(makeConfig({ctor: "_Tuple2",_0: _p8,_1: _p7})),
            layout2(makeConfig({ctor: "_Tuple2",_0: _p8,_1: _p9 - _p7})));
          default: return A3(_p3._0,layout1,layout2,config);}
-   })));
-   var inset = $Reactive.apply3($Reactive.$static(F3(function (dx,
-   dy,
-   g) {
+   }));
+   var inset = $Reactive.map3(F4(function (dx,dy,g,config) {
       var adjustedConfig = F2(function (x,y) {
-         return {dimensions: {ctor: "_Tuple2"
-                             ,_0: A2($Basics.max,0,x - 2 * dx)
-                             ,_1: A2($Basics.max,0,y - 2 * dy)}};
+         return _U.update(config,
+         {dimensions: {ctor: "_Tuple2"
+                      ,_0: A2($Basics.max,0,x - 2 * dx)
+                      ,_1: A2($Basics.max,0,y - 2 * dy)}});
       });
-      return function (config) {
-         var _p10 = config.dimensions;
-         var _p12 = _p10._1;
-         var _p11 = _p10._0;
-         return A4($Graphics$Element.container,
-         _p11,
-         _p12,
-         $Graphics$Element.middle,
-         g(A2(adjustedConfig,_p11,_p12)));
-      };
-   })));
-   var sized = $Reactive.apply($Reactive.$static(F2(function (element,
-   config) {
+      var _p10 = config.dimensions;
+      var _p12 = _p10._1;
+      var _p11 = _p10._0;
+      return A4($Graphics$Element.container,
+      _p11,
+      _p12,
+      $Graphics$Element.middle,
+      g(A2(adjustedConfig,_p11,_p12)));
+   }));
+   var sized = $Reactive.map(F2(function (element,config) {
       var _p13 = config.dimensions;
       return A3($Graphics$Element.size,_p13._0,_p13._1,element);
-   })));
-   var embed = $Reactive.apply2($Reactive.$static(F3(function (position,
+   }));
+   var embed = $Reactive.map2(F3(function (position,
    element,
    config) {
       var _p14 = config.dimensions;
@@ -6293,17 +6395,17 @@ Elm.Layout.make = function (_elm) {
       _p14._1,
       position,
       element);
-   })));
+   }));
    var contain = F4(function (rx,ry,rposition,layout) {
       return A2(embed,rposition,A3(withDimensions,rx,ry,layout));
    });
    var map = function (_p15) {
-      return $Reactive.apply(A2($Reactive.apply,
-      $Reactive.$static(F2(function (x,y) {
+      return $Reactive.apply(A2($Reactive.map,
+      F2(function (x,y) {
          return function (_p16) {
             return x(y(_p16));
          };
-      })),
+      }),
       _p15));
    };
    var placeholder = function (thing) {
@@ -6364,7 +6466,7 @@ Elm.Main.make = function (_elm) {
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm);
    var _op = {};
-   var main = $Reactive.getDynamic($Layout.fillscreen(A3($Layout.combine,
+   var main = $Reactive.get($Layout.fillscreen(A3($Layout.combine,
    $Reactive.$static($Layout.left(40)),
    $Layout.placeholder("he"),
    $Layout.placeholder("she"))));
